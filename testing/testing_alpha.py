@@ -119,7 +119,7 @@ def check_winner(winner_name, fighter_name, potential_return, bet, fighter_odds)
 with open("testing_alpha.txt", "w") as test:
     urls = []
     urls.append("https://www.ufc.com/events")
-    for i in range(1, 6):
+    for i in range(1, 8):
         urls.append("https://www.ufc.com/events?page=" + str(i))    
     all_fight_card_links = []
     for url in urls:
@@ -241,8 +241,8 @@ with open("testing_alpha.txt", "w") as test:
                     test.write(f"{fighter1_name}: {fighter1_odds} {a_win_avg:.2f} {kc_a:.2f}\n")
                     test.write(f"{fighter2_name}: {fighter2_odds} {b_win_avg:.2f} {kc_b:.2f}\n")
 
-                    fraction = 0.1
-                    max_fraction = 0.1
+                    fraction = 0.05
+                    max_fraction = 0.025
                     flat = 0.00
                     if a_win_avg > b_win_avg:
                         if (winner_name == fighter1_name and winner_name != "draw/no contest"):
