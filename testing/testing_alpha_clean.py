@@ -7,7 +7,7 @@ import csv
 
 # TODO: figure out how to do rematches (maybe just use a set)
 def get_ml(p1, p2):
-    with open("predicted_results.csv", mode='r') as file:
+    with open("data\predicted_results.csv", mode='r') as file:
         reader = csv.DictReader(file)
         for row in reader:
             if (row["Red Fighter"] == p1 and row["Blue Fighter"] == p2):
@@ -87,7 +87,7 @@ def processBet(bet, fighter_name, fighter_odds):
     return process_winner(winner_name, fighter_name, potential_return, bet, fighter_odds)
 
 bankrolls=[]
-with open("testing_alpha_clean.txt", "w") as test:
+with open(r"test_results\testing_alpha_clean.txt", "w") as test:
     urls = []
     urls.append("https://www.ufc.com/events")
     for i in range(1, 8):

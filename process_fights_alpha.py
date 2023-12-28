@@ -13,7 +13,7 @@ def query_fighter_by_name(name):
     fighter = Fighter.query.filter_by(name=name).first() 
     return fighter
 
-file_path = 'modified_fight_details.csv'
+file_path = 'data\modified_fight_details.csv'
 
 def reverse_csv_to_dict(file_path):
     with open(file_path, mode='r') as file:
@@ -254,7 +254,7 @@ for fight in fights:
     fighter_stats[Blue]["elo"]=new_rating_b
     
 
-def export_processed_fights(processed_fights, filename='detailed_fights.csv'):
+def export_processed_fights(processed_fights, filename='data\detailed_fights.csv'):
     with open(filename, mode='w', newline='') as file:
         if processed_fights:  # check if the list is not empty
             headers = processed_fights[0].keys()  # Get the keys from the first dictionary as headers
@@ -264,7 +264,7 @@ def export_processed_fights(processed_fights, filename='detailed_fights.csv'):
             for fight in processed_fights:
                 writer.writerow(fight)
 
-def export_fighter_stats(fighter_stats, filename='detailed_fighter_stats.csv'):
+def export_fighter_stats(fighter_stats, filename='data\detailed_fighter_stats.csv'):
     with open(filename, mode='w', newline='') as file:
         if fighter_stats:  # check if the dictionary is not empty
             example_fighter = next(iter(fighter_stats.values()))  # Get an example of the inner dictionary
@@ -296,8 +296,8 @@ def write_to_text_file(data, file_path, is_fighter_stats=False):
                 file.write("\n")
 
 # Paths for the output text files
-processed_fights_txt_path = 'processed_fights_readable.txt'
-fighter_stats_txt_path = 'fighter_stats_readable.txt'
+processed_fights_txt_path = 'data\processed_fights_readable.txt'
+fighter_stats_txt_path = 'data\fighter_stats_readable.txt'
 
 # Write the processed fights and fighter stats to text files
 write_to_text_file(processed_fights, processed_fights_txt_path)

@@ -10,7 +10,7 @@ from sklearn.model_selection import cross_val_score
 import numpy as np
 
 # Step 1: Read the data
-df = pd.read_csv("detailed_fights.csv")
+df = pd.read_csv("data\detailed_fights.csv")
 # Step 2: Preprocess the data
 # Assuming 'Result' is the target variable and the rest are features
 label_encoder = LabelEncoder()
@@ -267,7 +267,7 @@ accuracy = accuracy_score(y_test, y_pred)
 print(f"Accuracy: {accuracy:.4f}")
 
 # Get the fighter names and actual results for the test set
-df_with_details = pd.read_csv("detailed_fights.csv")[
+df_with_details = pd.read_csv("data\detailed_fights.csv")[
     ["Red Fighter", "Blue Fighter", "Result"]
 ]
 df_with_details = df_with_details.iloc[split_index:]  # Align with the test data split
@@ -278,7 +278,7 @@ df_with_details["Result"] = label_encoder.fit_transform(df_with_details["Result"
 predicted_labels = label_encoder.inverse_transform(y_pred)
 actual_labels = label_encoder.inverse_transform(df_with_details["Result"])
 
-with open("predicted_results.csv", mode="w", newline="") as file:
+with open("data\predicted_results.csv", mode="w", newline="") as file:
     writer = csv.writer(file)
     writer.writerow(
         [

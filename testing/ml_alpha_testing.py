@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
 import numpy as np
 # Step 1: Read the data
-df = pd.read_csv("detailed_fights.csv")
+df = pd.read_csv("data\detailed_fights.csv")
 # df = df[(df['Red totalfights'] > 4) & (df['Blue totalfights'] > 4)]
 # Step 2: Preprocess the data
 # Assuming 'Result' is the target variable and the rest are features
@@ -282,7 +282,7 @@ accuracy = accuracy_score(y_test_extended, y_pred)
 print(f"Extended Test Set Accuracy: {accuracy:.4f}")
 
 # Get the fighter names and actual results for the test set
-df_with_details = pd.read_csv("detailed_fights.csv")[["Red Fighter", "Blue Fighter", "Result"]]
+df_with_details = pd.read_csv("data\detailed_fights.csv")[["Red Fighter", "Blue Fighter", "Result"]]
 df_with_details = df_with_details.iloc[split_index:].reset_index(drop=True)
 
 # Duplicate and swap 'Red' and 'Blue' in the second half of df_with_details
@@ -298,7 +298,7 @@ predicted_labels = label_encoder.inverse_transform(y_pred)
 actual_labels = label_encoder.inverse_transform(df_with_details_extended["Result"])
 
 # Write predictions to a CSV file
-with open("predicted_results.csv", mode='w', newline='') as file:
+with open("data\predicted_results.csv", mode='w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(["Red Fighter", "Blue Fighter", "Predicted Result", "Probability"])
     for i in range(len(predicted_labels)):

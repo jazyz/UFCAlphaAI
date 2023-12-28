@@ -74,7 +74,7 @@ def get_fight_details(url):
     except Exception as e:
         return {"Error": str(e)}
 
-def write_to_csv(fight_details, filename='fight_details.csv', is_header_required=True):
+def write_to_csv(fight_details, filename=r'data\fight_details.csv', is_header_required=True):
     file_mode = 'w' if is_header_required else 'a'
     with open(filename, mode=file_mode, newline='') as file:
         writer = csv.writer(file)
@@ -106,13 +106,13 @@ def write_to_csv(fight_details, filename='fight_details.csv', is_header_required
         # Write the combined row
         writer.writerow(row)
 
-def process_fight_urls(url_list, filename='fight_details.csv'):
+def process_fight_urls(url_list, filename=r'data\fight_details.csv'):
     # Write details for each URL
     for i, url in enumerate(url_list):
         fight_details = get_fight_details(url)
         write_to_csv(fight_details, filename, is_header_required=(i==0))  # Header only for the first one
 
-def read_and_print_csv(filename='fight_details.csv'):
+def read_and_print_csv(filename=r'data\fight_details.csv'):
     with open(filename, mode='r', newline='') as file:
         reader = csv.reader(file)
         
