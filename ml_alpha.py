@@ -7,86 +7,209 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
+import numpy as np
 
 # Step 1: Read the data
 df = pd.read_csv("detailed_fights.csv")
-# df = df[(df['Red totalfights'] > 4) & (df['Blue totalfights'] > 4)]
 # Step 2: Preprocess the data
 # Assuming 'Result' is the target variable and the rest are features
 label_encoder = LabelEncoder()
 df["Result"] = label_encoder.fit_transform(df["Result"])
+
 selected_columns = [
     "Result",
-    "Red oppelo",
-    "Blue oppelo",
-    "Red wins",
-    "Blue wins",
-    # "Red losses",
-    # "Blue losses",
-    # "Red dob",
-    # "Blue dob",
-    # "Red totalfights",
-    # "Blue totalfights",
+    # "Red Fighter",
+    # "Blue Fighter",
+    # "Title",
+    "Red dob",
+    "Blue dob",
+    "Red totalfights",
+    "Blue totalfights",
     "Red elo",
     "Blue elo",
     "Red losestreak",
     "Blue losestreak",
-    # "Red winstreak",
-    # "Blue winstreak",
+    "Red winstreak",
+    "Blue winstreak",
     "Red titlewins",
     "Blue titlewins",
+    "Red oppelo",
+    "Blue oppelo",
+    "Red wins",
+    "Blue wins",
+    "Red losses",
+    "Blue losses",
     "Red KD",
     "Blue KD",
+    "Red KD differential",
+    "Blue KD differential",
     "Red Sig. str.",
     "Blue Sig. str.",
-    # "Red Total str.",
-    # "Blue Total str.",
+    "Red Sig. str. differential",
+    "Blue Sig. str. differential",
+    "Red Total str.",
+    "Blue Total str.",
+    "Red Total str. differential",
+    "Blue Total str. differential",
     "Red Td",
     "Blue Td",
+    "Red Td differential",
+    "Blue Td differential",
     "Red Sub. att",
     "Blue Sub. att",
-    # "Red Rev.",
-    # "Blue Rev.",
+    "Red Sub. att differential",
+    "Blue Sub. att differential",
+    "Red Rev.",
+    "Blue Rev.",
+    "Red Rev. differential",
+    "Blue Rev. differential",
     "Red Ctrl",
     "Blue Ctrl",
+    "Red Ctrl differential",
+    "Blue Ctrl differential",
     "Red Head",
     "Blue Head",
-    # "Red Body",
-    # "Blue Body",
-    # "Red Leg",
-    # "Blue Leg",
-    # "Red Distance",
-    # "Blue Distance",
-    # "Red Clinch",
-    # "Blue Clinch",
+    "Red Head differential",
+    "Blue Head differential",
+    "Red Body",
+    "Blue Body",
+    "Red Body differential",
+    "Blue Body differential",
+    "Red Leg",
+    "Blue Leg",
+    "Red Leg differential",
+    "Blue Leg differential",
+    "Red Distance",
+    "Blue Distance",
+    "Red Distance differential",
+    "Blue Distance differential",
+    "Red Clinch",
+    "Blue Clinch",
+    "Red Clinch differential",
+    "Blue Clinch differential",
     "Red Ground",
     "Blue Ground",
+    "Red Ground differential",
+    "Blue Ground differential",
     "Red Sig. str.%",
     "Blue Sig. str.%",
-    # "Red Total str.%",
-    # "Blue Total str.%",
+    "Red Sig. str.% differential",
+    "Blue Sig. str.% differential",
+    "Red Sig. str.% defense",
+    "Blue Sig. str.% defense",
+    "Red Total str.%",
+    "Blue Total str.%",
+    "Red Total str.% differential",
+    "Blue Total str.% differential",
+    "Red Total str.% defense",
+    "Blue Total str.% defense",
     "Red Td%",
     "Blue Td%",
+    "Red Td% differential",
+    "Blue Td% differential",
+    "Red Td% defense",
+    "Blue Td% defense",
     "Red Head%",
     "Blue Head%",
-    # "Red Body%",
-    # "Blue Body%",
-    # "Red Leg%",
-    # "Blue Leg%",
-    # "Red Distance%",
-    # "Blue Distance%",
-    # "Red Clinch%",
-    # "Blue Clinch%",
+    "Red Head% differential",
+    "Blue Head% differential",
+    "Red Head% defense",
+    "Blue Head% defense",
+    "Red Body%",
+    "Blue Body%",
+    "Red Body% differential",
+    "Blue Body% differential",
+    "Red Body% defense",
+    "Blue Body% defense",
+    "Red Leg%",
+    "Blue Leg%",
+    "Red Leg% differential",
+    "Blue Leg% differential",
+    "Red Leg% defense",
+    "Blue Leg% defense",
+    "Red Distance%",
+    "Blue Distance%",
+    "Red Distance% differential",
+    "Blue Distance% differential",
+    "Red Distance% defense",
+    "Blue Distance% defense",
+    "Red Clinch%",
+    "Blue Clinch%",
+    "Red Clinch% differential",
+    "Blue Clinch% differential",
+    "Red Clinch% defense",
+    "Blue Clinch% defense",
     "Red Ground%",
     "Blue Ground%",
-    # "Red Fighter",
-    # "Blue Fighter",
-    # "Red Sig. str",
-    # "Blue Sig. str",
-    # "Red Sig. str%",
-    # "Blue Sig. str%",
-    # "Title",
+    "Red Ground% differential",
+    "Blue Ground% differential",
+    "Red Ground% defense",
+    "Blue Ground% defense",
+    "dob oppdiff",
+    "totalfights oppdiff",
+    "elo oppdiff",
+    "losestreak oppdiff",
+    "winstreak oppdiff",
+    "titlewins oppdiff",
+    "oppelo oppdiff",
+    "wins oppdiff",
+    "losses oppdiff",
+    "KD oppdiff",
+    "KD differential oppdiff",
+    "Sig. str. oppdiff",
+    "Sig. str. differential oppdiff",
+    "Total str. oppdiff",
+    "Total str. differential oppdiff",
+    "Td oppdiff",
+    "Td differential oppdiff",
+    "Sub. att oppdiff",
+    "Sub. att differential oppdiff",
+    "Rev. oppdiff",
+    "Rev. differential oppdiff",
+    "Ctrl oppdiff",
+    "Ctrl differential oppdiff",
+    "Head oppdiff",
+    "Head differential oppdiff",
+    "Body oppdiff",
+    "Body differential oppdiff",
+    "Leg oppdiff",
+    "Leg differential oppdiff",
+    "Distance oppdiff",
+    "Distance differential oppdiff",
+    "Clinch oppdiff",
+    "Clinch differential oppdiff",
+    "Ground oppdiff",
+    "Ground differential oppdiff",
+    "Sig. str.% oppdiff",
+    "Sig. str.% differential oppdiff",
+    "Sig. str.% defense oppdiff",
+    "Total str.% oppdiff",
+    "Total str.% differential oppdiff",
+    "Total str.% defense oppdiff",
+    "Td% oppdiff",
+    "Td% differential oppdiff",
+    "Td% defense oppdiff",
+    "Head% oppdiff",
+    "Head% differential oppdiff",
+    "Head% defense oppdiff",
+    "Body% oppdiff",
+    "Body% differential oppdiff",
+    "Body% defense oppdiff",
+    "Leg% oppdiff",
+    "Leg% differential oppdiff",
+    "Leg% defense oppdiff",
+    "Distance% oppdiff",
+    "Distance% differential oppdiff",
+    "Distance% defense oppdiff",
+    "Clinch% oppdiff",
+    "Clinch% differential oppdiff",
+    "Clinch% defense oppdiff",
+    "Ground% oppdiff",
+    "Ground% differential oppdiff",
+    "Ground% defense oppdiff",
 ]
+
+
 df = df[selected_columns]
 X = df.drop(["Result"], axis=1)
 y = df["Result"]
@@ -134,33 +257,7 @@ X_train_extended = pd.concat([X_train, X_train_swapped], ignore_index=True)
 y_train_extended = pd.concat([y_train, y_train_swapped], ignore_index=True)
 
 
-# Fit the model
-best_params = {
-    "learning_rate": 0.01,
-    "min_data_in_leaf": 50,
-    "num_leaves": 31,
-    "reg_alpha": 0.1,
-}
-
-# Initialize and train the model
-# model = lgb.LGBMClassifier(
-#     random_state=seed,
-#     learning_rate=best_params["learning_rate"],
-#     min_data_in_leaf=best_params["min_data_in_leaf"],
-#     num_leaves=best_params["num_leaves"],
-#     reg_alpha=best_params["reg_alpha"],
-# )
-# model = lgb.LGBMClassifier(
-#     random_state=42,
-#     num_leaves=31,
-#     learning_rate=0.1,
-#     min_data_in_leaf=30,
-#     reg_alpha=0.1,
-#     max_bin=200,
-#     max_depth=15
-# )
-
-#model.fit(X_train, y_train)
+# model.fit(X_train, y_train)
 model = lgb.LGBMClassifier(random_state=seed)
 model.fit(X_train_extended, y_train_extended)
 # Make predictions and evaluate the model
@@ -181,19 +278,29 @@ df_with_details["Result"] = label_encoder.fit_transform(df_with_details["Result"
 predicted_labels = label_encoder.inverse_transform(y_pred)
 actual_labels = label_encoder.inverse_transform(df_with_details["Result"])
 
-with open("predicted_results.csv", mode='w', newline='') as file:
+with open("predicted_results.csv", mode="w", newline="") as file:
     writer = csv.writer(file)
-    writer.writerow(["Red Fighter", "Blue Fighter", "Predicted Result", "Probability", "Actual Result"])
+    writer.writerow(
+        [
+            "Red Fighter",
+            "Blue Fighter",
+            "Predicted Result",
+            "Probability",
+            "Actual Result",
+        ]
+    )
     for i in range(len(predicted_labels)):
         max_probability = max(predicted_probabilities[i])
-        
-        writer.writerow([
-            df_with_details['Red Fighter'].iloc[i], 
-            df_with_details['Blue Fighter'].iloc[i], 
-            predicted_labels[i], 
-            max_probability,  # Formatting as a percentage
-            actual_labels[i]
-        ])
+
+        writer.writerow(
+            [
+                df_with_details["Red Fighter"].iloc[i],
+                df_with_details["Blue Fighter"].iloc[i],
+                predicted_labels[i],
+                max_probability,  # Formatting as a percentage
+                actual_labels[i],
+            ]
+        )
 
 feature_importances = model.feature_importances_
 
@@ -210,6 +317,11 @@ plt.ylabel("Feature")
 plt.title("Feature Importance")
 plt.show()
 
+print("Top 25 Important Features:")
+print(feature_importance_df.head(10))
+
+
+################### HYPERPARAMETERS
 # def lgb_cv(num_leaves, learning_rate, min_data_in_leaf, reg_alpha):
 #     """LGBM Cross Validation Score.
 #     This function will be passed to Bayesian Optimizer.
@@ -261,4 +373,29 @@ plt.show()
 # model = lgb.LGBMClassifier(
 #     **best_params,
 #     random_state=seed
+# )
+# Fit the model
+# best_params = {
+#     "learning_rate": 0.1,
+#     "min_data_in_leaf": 30,
+#     "num_leaves": 31,
+#     "reg_alpha": 0.1,
+# }
+
+# Initialize and train the model
+# model = lgb.LGBMClassifier(
+#     random_state=seed,
+#     learning_rate=best_params["learning_rate"],
+#     min_data_in_leaf=best_params["min_data_in_leaf"],
+#     num_leaves=best_params["num_leaves"],
+#     reg_alpha=best_params["reg_alpha"],
+# )
+# model = lgb.LGBMClassifier(
+#     random_state=42,
+#     num_leaves=31,
+#     learning_rate=0.1,
+#     min_data_in_leaf=30,
+#     reg_alpha=0.1,
+#     max_bin=200,
+#     max_depth=15
 # )

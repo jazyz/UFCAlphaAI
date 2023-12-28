@@ -71,20 +71,29 @@ for fight in fights:
 # store it back into the dicts
 headers=get_csv_headers(file_path)
 
-hardcoded_features = ["dob","totalfights","elo","losestreak","winstreak","titlewins"]
-feature_list=["oppelo","wins","losses"]
+hardcoded_features = ["dob","totalfights","elo","losestreak","winstreak","titlewins",]
+hardcoded_features_divide = ["oppelo","wins","losses"]
+feature_list=[]
 feature_list.extend(hardcoded_features)
+feature_list.extend(hardcoded_features_divide)
 
+header_features = []
 for column in headers:
     s1,s2=split_at_first_space(column)
     if(s1=="Red" and s2!="Fighter"):
-        feature_list.append(s2)
+        header_features.append(s2)
+
+feature_list.extend(header_features)
 
 with app.app_context():
     for fighter in all_fighters:
         fighter_stats[fighter] = {}
         for feature in feature_list:
             fighter_stats[fighter][feature]=0
+            if feature in header_features:
+                fighter_stats[fighter][f"{feature} differential"]=0
+            if "%" in feature:
+                fighter_stats[fighter][f"{feature} defense"]=0
         fighter_stats[fighter]["elo"]=1000
         # get DOB        
         fighter_object = query_fighter_by_name(fighter)
@@ -109,6 +118,9 @@ def sqr(n):
 def sqrSum(n):
     return n*(n+1)*(2*n+1)//6
 
+def getTime(fight):
+    return (float(fight['Round'])-1)*5 + float(fight['Time'])
+
 def processFight(fight, Red, Blue):
     winner = fight['Winner']
     Result='draw'
@@ -117,16 +129,16 @@ def processFight(fight, Red, Blue):
     elif winner == Blue:
         Result = 'loss'
 
-    switch = random.choice([True, False])
-    if switch:
-        Red, Blue = Blue, Red 
-        if Result == 'win':
-            Result = 'loss'
-        elif Result == 'loss':
-            Result = 'win'
+    # switch = random.choice([True, False])
+    # if switch:
+    #     Red, Blue = Blue, Red 
+    #     if Result == 'win':
+    #         Result = 'loss'
+    #     elif Result == 'loss':
+    #         Result = 'win'
 
     processed_fight = {"Result": Result}
-    if fighter_stats[Red]["totalfights"] >= 3 and fighter_stats[Blue]["totalfights"] >= 3:
+    if fighter_stats[Red]["totalfights"] >= 2 and fighter_stats[Blue]["totalfights"] >= 2:
         processed_fight['Red Fighter'] = Red
         processed_fight['Blue Fighter'] = Blue
         processed_fight['Title'] = fight['Title']
@@ -134,35 +146,73 @@ def processFight(fight, Red, Blue):
             if feature in fighter_stats[Red] and feature in fighter_stats[Blue]:
                 processed_fight[f'Red {feature}'] = fighter_stats[Red][feature]
                 processed_fight[f'Blue {feature}'] = fighter_stats[Blue][feature]
-                if not (feature in hardcoded_features):
+                if feature in header_features:
+                    processed_fight[f'Red {feature} differential'] = fighter_stats[Red][f'{feature} differential']
+                    processed_fight[f'Blue {feature} differential'] = fighter_stats[Blue][f'{feature} differential']
                     processed_fight[f'Red {feature}'] /= sqrSum(fighter_stats[Red]["totalfights"])
                     processed_fight[f'Blue {feature}'] /= sqrSum(fighter_stats[Blue]["totalfights"])
+                    processed_fight[f'Red {feature} differential'] /= sqrSum(fighter_stats[Red]["totalfights"])
+                    processed_fight[f'Blue {feature} differential'] /= sqrSum(fighter_stats[Blue]["totalfights"])
+                    if "%" in feature:
+                        processed_fight[f'Red {feature} defense'] = sqrSum(fighter_stats[Red][f"{feature} defense"] / fighter_stats[Red]["totalfights"])
+                        processed_fight[f'Blue {feature} defense'] = sqrSum(fighter_stats[Blue][f"{feature} defense"] / fighter_stats[Blue]["totalfights"])
+                if feature in hardcoded_features_divide:
+                    processed_fight[f'Red {feature}'] /= fighter_stats[Red]["totalfights"]
+                    processed_fight[f'Blue {feature}'] /= fighter_stats[Blue]["totalfights"]
+        for feature in feature_list:
+            # Basic feature difference
+            red_key = f'Red {feature}'
+            blue_key = f'Blue {feature}'
+            if red_key in processed_fight and blue_key in processed_fight:
+                processed_fight[f'{feature} oppdiff'] = processed_fight[red_key] - processed_fight[blue_key]
+
+            # Differential feature difference
+            red_diff_key = f'Red {feature} differential'
+            blue_diff_key = f'Blue {feature} differential'
+            if red_diff_key in processed_fight and blue_diff_key in processed_fight:
+                processed_fight[f'{feature} differential oppdiff'] = processed_fight[red_diff_key] - processed_fight[blue_diff_key]
+
+            # Defense feature difference
+            red_defense_key = f'Red {feature} defense'
+            blue_defense_key = f'Blue {feature} defense'
+            if red_defense_key in processed_fight and blue_defense_key in processed_fight:
+                processed_fight[f'{feature} defense oppdiff'] = processed_fight[red_defense_key] - processed_fight[blue_defense_key]
+
         processed_fights.append(processed_fight)
 
+print(header_features)
 for fight in fights:
     count+=1
     Red = fight['Red Fighter']
     Blue = fight['Blue Fighter']
 
-    
     processFight(fight, Red, Blue)
-        # update more features
-    
-        
+
     fighter_stats[Red]["totalfights"] += 1
     fighter_stats[Blue]["totalfights"] += 1
+    redfights = fighter_stats[Red]["totalfights"] 
+    bluefights = fighter_stats[Blue]["totalfights"] 
     for feature in feature_list:
-        if feature in hardcoded_features:
+        if feature in hardcoded_features or feature in hardcoded_features_divide:
             continue
         red_feature_key = "Red " + feature
         blue_feature_key = "Blue " + feature
         try:
             red_value = float(fight[red_feature_key])
             blue_value = float(fight[blue_feature_key])
-            fighter_stats[Red][feature] += (red_value - blue_value)  *  sqr(fighter_stats[Red]["totalfights"]) 
-            #fighter_stats[Red][feature] *= fighter_stats[Blue]["elo"]
-            fighter_stats[Blue][feature] += (blue_value - red_value) *  sqr(fighter_stats[Blue]["totalfights"]) 
-            #fighter_stats[Blue][feature] *= fighter_stats[Red]["elo"]
+            
+            if "%" in feature:
+                fighter_stats[Red][f"{feature} differential"] += (red_value - blue_value) * sqr(redfights)
+                fighter_stats[Blue][f"{feature} differential"] += (blue_value - red_value) * sqr(bluefights)
+            else:
+                fighter_stats[Red][f"{feature} differential"] += (red_value - blue_value) * sqr(redfights)
+                fighter_stats[Blue][f"{feature} differential"] += (blue_value - red_value) * sqr(bluefights)
+            
+            fighter_stats[Red][f"{feature}"] += red_value * sqr(redfights) / getTime(fight)
+            fighter_stats[Blue][f"{feature}"] += blue_value * sqr(bluefights) / getTime(fight)
+            if "%" in feature:
+                fighter_stats[Red][f"{feature} defense"] += (1 - blue_value) * sqr(redfights)
+                fighter_stats[Blue][f"{feature} defense"] += (1 - red_value) * sqr(bluefights)
         except:
             pass
     winner = fight['Winner']
@@ -177,31 +227,27 @@ for fight in fights:
         title=True
     rating_a = fighter_stats[Red]["elo"]
     rating_b = fighter_stats[Blue]["elo"]
-    fighter_stats[Red]["oppelo"]+=rating_b * sqr(fighter_stats[Red]["totalfights"])
-    fighter_stats[Blue]["oppelo"]+=rating_a * sqr(fighter_stats[Blue]["totalfights"])
+    fighter_stats[Red]["oppelo"]+=rating_b
+    fighter_stats[Blue]["oppelo"]+=rating_a
 
     if Result=='win':
         fighter_stats[Blue]["losestreak"]+=1
         fighter_stats[Red]["losestreak"]=0
         fighter_stats[Red]["winstreak"]+=1
         fighter_stats[Blue]["winstreak"]=0
-        fighter_stats[Red]["wins"]+=1
+        fighter_stats[Red]["wins"]+=1 
         fighter_stats[Blue]["losses"]+=1
         if title:
             fighter_stats[Red]["titlewins"]+=1
-        # fighter_stats[Red]["winelo"]+=rating_b
-        # fighter_stats[Blue]["losselo"]+=rating_a
     if Result=='loss':
         fighter_stats[Red]["losestreak"]+=1
         fighter_stats[Blue]["losestreak"]=0
         fighter_stats[Blue]["winstreak"]+=1
         fighter_stats[Red]["winstreak"]=0
-        fighter_stats[Blue]["wins"]+=1
-        fighter_stats[Red]["losses"]+=1
+        fighter_stats[Blue]["wins"]+=1 
+        fighter_stats[Red]["losses"]+=1 
         if title:
             fighter_stats[Blue]["titlewins"]+=1
-        # fighter_stats[Blue]["winelo"]+=rating_a
-        # fighter_stats[Red]["losselo"]+=rating_b
 
     new_rating_a, new_rating_b = update_elo_ratings(rating_a, rating_b, Result)
     fighter_stats[Red]["elo"]=new_rating_a
@@ -223,7 +269,6 @@ def export_fighter_stats(fighter_stats, filename='detailed_fighter_stats.csv'):
         if fighter_stats:  # check if the dictionary is not empty
             example_fighter = next(iter(fighter_stats.values()))  # Get an example of the inner dictionary
             headers = ['Fighter'] + list(example_fighter.keys())  # 'Fighter' column plus each stat
-            print(headers)
             writer = csv.DictWriter(file, fieldnames=headers)
             writer.writeheader()
 
@@ -259,7 +304,7 @@ write_to_text_file(processed_fights, processed_fights_txt_path)
 write_to_text_file(fighter_stats, fighter_stats_txt_path, is_fighter_stats=True)
 
 # Print paths to the generated files or handle further as needed
-print(f"Processed fights saved to {processed_fights_txt_path}")
-print(f"Fighter stats saved to {fighter_stats_txt_path}")
+# print(f"Processed fights saved to {processed_fights_txt_path}")
+# print(f"Fighter stats saved to {fighter_stats_txt_path}")
 
 #TODO: STORE ALL THE PREVIOUS FIGHTS OF A FIGHTER. WHEN IT COMES TIME TO PROCESS, loop through the last 5 fights and compute the stats
