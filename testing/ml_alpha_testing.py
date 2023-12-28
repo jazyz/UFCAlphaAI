@@ -1,4 +1,5 @@
 import csv
+import json
 import pandas as pd
 import sys
 import lightgbm as lgb
@@ -8,6 +9,9 @@ from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
 import numpy as np
+import optuna
+from sklearn.metrics import log_loss
+
 # Step 1: Read the data
 df = pd.read_csv("data\detailed_fights.csv")
 # df = df[(df['Red totalfights'] > 4) & (df['Blue totalfights'] > 4)]
@@ -209,19 +213,19 @@ selected_columns = [
 ]
 
 
-# corr_matrix = df[selected_columns].corr().abs()
+corr_matrix = df[selected_columns].corr().abs()
 
-# # Select upper triangle of correlation matrix
-# upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+# Select upper triangle of correlation matrix
+upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
 
-# # Find features with correlation greater than 95%
-# to_drop = [column for column in upper_tri.columns if any(upper_tri[column] > 0.95)]
+# Find features with correlation greater than 95%
+to_drop = [column for column in upper_tri.columns if any(upper_tri[column] > 0.95)]
 
-# # Drop highly correlated features
-# df.drop(to_drop, axis=1, inplace=True)
+# Drop highly correlated features
+df.drop(to_drop, axis=1, inplace=True)
 
-# # Make sure to update the 'selected_columns' to reflect the dropped columns
-# selected_columns = [column for column in selected_columns if column not in to_drop]
+# Make sure to update the 'selected_columns' to reflect the dropped columns
+selected_columns = [column for column in selected_columns if column not in to_drop]
 
 df = df[selected_columns]
 X = df.drop(["Result"], axis=1)
@@ -231,7 +235,7 @@ y = df["Result"]
 # X = pd.get_dummies(X)  # This line is optional and depends on your data
 
 # Manual split based on percentage
-split_index = int(len(df) * 0.8)
+split_index = int(len(df) * 0.9)
 last_index = int(len(df) * 1)
 X_train, X_test = X[:split_index], X[split_index:last_index]
 y_train, y_test = y[:split_index], y[split_index:last_index]
@@ -271,8 +275,15 @@ y_test_swapped = y_test_swapped.apply(lambda x: 2 if x == 1 else (1 if x == 2 el
 X_test_extended = pd.concat([X_test, X_test_swapped], ignore_index=True)
 y_test_extended = pd.concat([y_test, y_test_swapped], ignore_index=True)
 
-# Fit the model
-model = lgb.LGBMClassifier(random_state=42)
+with open('best_params.json', 'r') as file:
+    data_loaded = json.load(file)
+
+# Extracting the best parameters and score from the loaded data
+best_params = data_loaded['best_params']
+best_score = data_loaded['best_score']
+
+model = lgb.LGBMClassifier(**best_params)
+
 model.fit(X_train_extended, y_train_extended)
 
 # Make predictions and evaluate the model

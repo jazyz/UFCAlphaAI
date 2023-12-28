@@ -90,7 +90,7 @@ bankrolls=[]
 with open(r"test_results\testing_alpha_clean.txt", "w") as test:
     urls = []
     urls.append("https://www.ufc.com/events")
-    for i in range(1, 8):
+    for i in range(1, 4):
         urls.append("https://www.ufc.com/events?page=" + str(i))    
     all_fight_card_links = []
     for url in urls:
@@ -210,8 +210,8 @@ with open(r"test_results\testing_alpha_clean.txt", "w") as test:
                     test.write(f"{fighter1_name}: {fighter1_odds} {a_win:.2f} {kc_a:.2f}\n")
                     test.write(f"{fighter2_name}: {fighter2_odds} {b_win:.2f} {kc_b:.2f}\n")
 
-                    fraction = 0.05
-                    max_fraction = 0.025
+                    fraction = 0.1
+                    max_fraction = 0.1
                     flat = 0.000
                     if a_win > b_win:
                         if (kc_a > 0):
@@ -249,7 +249,7 @@ with open(r"test_results\testing_alpha_clean.txt", "w") as test:
             test.write(f"Failed to retrieve the fight card page. Status code: {response.status_code}\n")
     else:
         test.write(f"Failed to retrieve the events page. Status code: {response.status_code}\n")
-    with open("results.txt", "a") as file:
+    with open(r"test_results\results.txt", "a") as file:
         file.write("------ RESULT ------\n")
         file.write(f"Bankroll: ${bankroll:.2f}\n")
         file.write(f"Min Bankroll: ${minBankroll:.2f}\n")

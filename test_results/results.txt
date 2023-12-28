@@ -390,3 +390,8 @@ Bankroll: $1363.68
 Min Bankroll: $977.99
 Max Bankroll: $1427.00
 
+------ RESULT ------
+Bankroll: $1146.90
+Min Bankroll: $977.67
+Max Bankroll: $1376.12
+

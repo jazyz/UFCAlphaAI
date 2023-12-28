@@ -1,4 +1,5 @@
 import csv
+import json
 import pandas as pd
 import sys
 import lightgbm as lgb
@@ -8,7 +9,8 @@ from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
 import numpy as np
-
+from sklearn.metrics import log_loss
+import optuna
 # Step 1: Read the data
 df = pd.read_csv("data\detailed_fights.csv")
 # Step 2: Preprocess the data
@@ -209,6 +211,19 @@ selected_columns = [
     "Ground% defense oppdiff",
 ]
 
+corr_matrix = df[selected_columns].corr().abs()
+
+# Select upper triangle of correlation matrix
+upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+
+# Find features with correlation greater than 95%
+to_drop = [column for column in upper_tri.columns if any(upper_tri[column] > 0.95)]
+
+# Drop highly correlated features
+df.drop(to_drop, axis=1, inplace=True)
+
+# Make sure to update the 'selected_columns' to reflect the dropped columns
+selected_columns = [column for column in selected_columns if column not in to_drop]
 
 df = df[selected_columns]
 X = df.drop(["Result"], axis=1)
@@ -218,7 +233,7 @@ y = df["Result"]
 # X = pd.get_dummies(X)  # This line is optional and depends on your data
 
 # Manual split based on percentage
-split_index = int(len(df) * 0.8)
+split_index = int(len(df) * 0.9)
 last_index = int(len(df) * 1)
 X_train, X_test = X[:split_index], X[split_index:last_index]
 y_train, y_test = y[:split_index], y[split_index:last_index]
@@ -257,8 +272,75 @@ X_train_extended = pd.concat([X_train, X_train_swapped], ignore_index=True)
 y_train_extended = pd.concat([y_train, y_train_swapped], ignore_index=True)
 
 
-# model.fit(X_train, y_train)
-model = lgb.LGBMClassifier(random_state=seed)
+# def objective(trial):
+#     # Parameter suggestions by Optuna for tuning
+#     param = {
+#         'objective': 'multiclass',  # or 'binary' for binary classification
+#         'verbosity': -1,
+#         'boosting_type': 'gbdt',    # Default boosting type
+#         'num_leaves': trial.suggest_int('num_leaves', 30, 150),  # more conservative than default
+#         'learning_rate': trial.suggest_float('learning_rate', 0.02, 0.2, log=True),  # adjusted range for more granular learning rates
+#         'min_child_samples': trial.suggest_int('min_child_samples', 20, 100),  # adjusted range to prevent overfitting
+#         'subsample': trial.suggest_float('subsample', 0.5, 1.0),  # subsample ratio of the training instance
+#         'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),  # subsample ratio of columns when constructing each tree
+#         'n_estimators': 100,  # Fixed number of estimators for simplicity
+#         'num_class': 3  # Replace with the actual number of classes in your dataset
+#     }
+    
+#     # Splitting data for validation
+#     X_train, X_valid, y_train, y_valid = train_test_split(X_train_extended, y_train_extended, test_size=0.2, stratify=y_train_extended)
+
+#     # Creating LightGBM datasets
+#     dtrain = lgb.Dataset(X_train, label=y_train)
+#     dvalid = lgb.Dataset(X_valid, label=y_valid)
+
+#     # Training model
+#     model = lgb.train(
+#         param, 
+#         dtrain, 
+#         valid_sets=[dvalid],
+#         callbacks=[lgb.early_stopping(stopping_rounds=10)]
+#     )
+
+#     # Making predictions
+#     preds = model.predict(X_valid, num_iteration=model.best_iteration)
+#     pred_labels = np.argmax(preds, axis=1)  # For multiclass classification
+
+#     # Calculate accuracy
+#     accuracy = accuracy_score(y_valid, pred_labels)
+
+#     # Return negative accuracy for maximization
+#     return accuracy  # Optuna minimizes the objective, so use negative accuracy to maximize
+
+# # Create the study object with maximization direction
+# study = optuna.create_study(direction='maximize')  # Change to 'maximize' because we are focusing on accuracy
+# study.optimize(objective, n_trials=20)
+
+# # Fetching the best parameters
+# best_params = study.best_params
+# best_score = study.best_value
+
+# # Output the best parameters and score
+# print(f"Best params: {best_params}")
+# print(f"Best score: {best_score}")
+
+# with open('best_params.json', 'w') as file:
+#     # Creating a dictionary to hold data
+#     data_to_save = {
+#         'best_params': best_params,
+#         'best_score': best_score
+#     }
+#     # Writing as a JSON formatted string for readability and ease of use
+#     json.dump(data_to_save, file, indent=4)
+# Now use the best parameters to fit the model on complete training data
+    
+with open('best_params.json', 'r') as file:
+    data_loaded = json.load(file)
+
+# Extracting the best parameters and score from the loaded data
+best_params = data_loaded['best_params']
+best_score = data_loaded['best_score']
+model = lgb.LGBMClassifier(**best_params)
 model.fit(X_train_extended, y_train_extended)
 # Make predictions and evaluate the model
 y_pred = model.predict(X_test)
@@ -319,83 +401,3 @@ plt.show()
 
 print("Top 25 Important Features:")
 print(feature_importance_df.head(10))
-
-
-################### HYPERPARAMETERS
-# def lgb_cv(num_leaves, learning_rate, min_data_in_leaf, reg_alpha):
-#     """LGBM Cross Validation Score.
-#     This function will be passed to Bayesian Optimizer.
-#     """
-#     params = {
-#         'num_leaves': int(round(num_leaves)),
-#         'learning_rate': learning_rate,
-#         'min_data_in_leaf': int(round(min_data_in_leaf)),
-#         'reg_alpha': reg_alpha,
-#         'random_state': seed  # ensure reproducibility
-#     }
-
-#     # Initialize and cross-validate the model
-#     model = lgb.LGBMClassifier(**params)
-#     cv_score = cross_val_score(model, X_train_extended, y_train_extended, cv=5, scoring='accuracy').mean()
-#     return cv_score
-
-# # Define bounds of hyperparameters for Bayesian Optimization
-# pbounds = {
-#     'num_leaves': (20, 60),
-#     'learning_rate': (0.001, 0.1),
-#     'min_data_in_leaf': (20, 200),
-#     'reg_alpha': (0, 1)
-# }
-
-# # Initialize Bayesian Optimization
-# optimizer = BayesianOptimization(
-#     f=lgb_cv,
-#     pbounds=pbounds,
-#     random_state=42,
-# )
-
-# # Optimize
-# optimizer.maximize(
-#     init_points=2,  # number of initializing random points
-#     n_iter=10,  # number of iterations for optimization
-# )
-
-# # Extract the best parameters
-# best_params = optimizer.max['params']
-
-# # Convert the 'num_leaves' and 'min_data_in_leaf' to int since they must be integers
-# best_params['num_leaves'] = int(round(best_params['num_leaves']))
-# best_params['min_data_in_leaf'] = int(round(best_params['min_data_in_leaf']))
-
-# print("Best parameters:", best_params)
-
-# # Now use the best parameters to fit the model
-# model = lgb.LGBMClassifier(
-#     **best_params,
-#     random_state=seed
-# )
-# Fit the model
-# best_params = {
-#     "learning_rate": 0.1,
-#     "min_data_in_leaf": 30,
-#     "num_leaves": 31,
-#     "reg_alpha": 0.1,
-# }
-
-# Initialize and train the model
-# model = lgb.LGBMClassifier(
-#     random_state=seed,
-#     learning_rate=best_params["learning_rate"],
-#     min_data_in_leaf=best_params["min_data_in_leaf"],
-#     num_leaves=best_params["num_leaves"],
-#     reg_alpha=best_params["reg_alpha"],
-# )
-# model = lgb.LGBMClassifier(
-#     random_state=42,
-#     num_leaves=31,
-#     learning_rate=0.1,
-#     min_data_in_leaf=30,
-#     reg_alpha=0.1,
-#     max_bin=200,
-#     max_depth=15
-# )
