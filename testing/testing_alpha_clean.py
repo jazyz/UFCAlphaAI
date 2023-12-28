@@ -1,6 +1,5 @@
-# automated testing file
-# get all the fights from a certain date from ufc events website
-# 
+import matplotlib.pyplot as plt
+
 
 import requests
 from bs4 import BeautifulSoup
@@ -87,6 +86,7 @@ def processBet(bet, fighter_name, fighter_odds):
     test.write(f" ${bet:.2f} (bet) pt: ${bet + potential_return:.2f} +${potential_return:.2f} ")
     return process_winner(winner_name, fighter_name, potential_return, bet, fighter_odds)
 
+bankrolls=[]
 with open("testing_alpha_clean.txt", "w") as test:
     urls = []
     urls.append("https://www.ufc.com/events")
@@ -239,6 +239,7 @@ with open("testing_alpha_clean.txt", "w") as test:
                     test.write("---\n")
                 
             bankroll=nextBankroll
+            bankrolls.append(bankroll)
             minBankroll=min(minBankroll,bankroll)
             maxBankroll=max(maxBankroll,bankroll)
             if (fight_card_link == "https://www.ufc.com/event/ufc-296"):
@@ -254,3 +255,11 @@ with open("testing_alpha_clean.txt", "w") as test:
         file.write(f"Min Bankroll: ${minBankroll:.2f}\n")
         file.write(f"Max Bankroll: ${maxBankroll:.2f}\n")
         file.write("\n")
+
+plt.figure(figsize=(10, 6))
+plt.plot(bankrolls, marker='o')  # Plotting the bankrolls array
+plt.title("Bankroll Over Time")
+plt.xlabel("Time")
+plt.ylabel("Bankroll")
+plt.grid(True)
+plt.show()

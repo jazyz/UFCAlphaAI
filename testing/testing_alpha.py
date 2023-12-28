@@ -119,7 +119,7 @@ def check_winner(winner_name, fighter_name, potential_return, bet, fighter_odds)
 with open("testing_alpha.txt", "w") as test:
     urls = []
     urls.append("https://www.ufc.com/events")
-    for i in range(1, 10):
+    for i in range(1, 6):
         urls.append("https://www.ufc.com/events?page=" + str(i))    
     all_fight_card_links = []
     for url in urls:

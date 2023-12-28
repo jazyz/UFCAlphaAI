@@ -200,3 +200,68 @@ Bankroll: $3042.15
 Min Bankroll: $973.68
 Max Bankroll: $3417.93
 
+------ RESULT ------
+Bankroll: $3042.15
+Min Bankroll: $973.68
+Max Bankroll: $3417.93
+
+------ RESULT ------
+Bankroll: $1921.82
+Min Bankroll: $973.68
+Max Bankroll: $2558.55
+
+------ RESULT ------
+Bankroll: $1292.77
+Min Bankroll: $1000.00
+Max Bankroll: $1945.19
+
+------ RESULT ------
+Bankroll: $1327.33
+Min Bankroll: $990.01
+Max Bankroll: $1990.57
+
+------ RESULT ------
+Bankroll: $764.55
+Min Bankroll: $752.77
+Max Bankroll: $1000.00
+
+------ RESULT ------
+Bankroll: $784.63
+Min Bankroll: $772.55
+Max Bankroll: $1176.69
+
+------ RESULT ------
+Bankroll: $939.27
+Min Bankroll: $924.81
+Max Bankroll: $1408.61
+
+------ RESULT ------
+Bankroll: $939.27
+Min Bankroll: $924.81
+Max Bankroll: $1408.61
+
+------ RESULT ------
+Bankroll: $1582.95
+Min Bankroll: $997.54
+Max Bankroll: $1778.49
+
+------ RESULT ------
+Bankroll: $1237.93
+Min Bankroll: $967.61
+Max Bankroll: $1551.04
+
+------ RESULT ------
+Bankroll: $897.97
+Min Bankroll: $701.89
+Max Bankroll: $1125.10
+
+------ RESULT ------
+Bankroll: $897.97
+Min Bankroll: $701.89
+Max Bankroll: $1125.10
+
+------ RESULT ------
+Bankroll: $3042.15
+Min Bankroll: $973.68
+Max Bankroll: $3417.93
+
